@@ -7,9 +7,12 @@ import { Timer, Trophy, AlertCircle, Home, ChevronRight, List } from "lucide-rea
 import Link from "next/link";
 import { BASIC_1, type Level, type GameEdge, getLevelById, ALL_LEVELS } from "@/lib/levelData";
 import { calculateScore } from "@/lib/gameLogic";
+import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function GamePage() {
+  const isAuth = useAuth();
+
   const [level, setLevel] = useState<Level>(BASIC_1);
   const [isLoaded, setIsLoaded] = useState(false);
   const [score, setScore] = useState(0);
@@ -48,6 +51,8 @@ export default function GamePage() {
     const interval = setInterval(() => setTime((t) => t + 1), 1000);
     return () => clearInterval(interval);
   }, [isComplete, isLoaded]);
+
+  if (isAuth === null) return null;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

@@ -6,8 +6,13 @@ import { QUIZZES } from "@/lib/quizData";
 import { Button } from "@/components/ui/button";
 import { Home, PlayCircle, Star, BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LevelsPage() {
+  const isAuth = useAuth();
+
+  if (isAuth === null) return null;
+
   const groupedLevels = {
     Básico: ALL_LEVELS.filter(l => l.difficulty === "🟢 Básico"),
     Intermedio: ALL_LEVELS.filter(l => l.difficulty === "🟡 Intermedio"),
@@ -26,32 +31,26 @@ export default function LevelsPage() {
           <h1 className="text-3xl font-black text-[#333333] tracking-tight uppercase">Misiones</h1>
           <p className="text-sm font-bold text-[#647687] uppercase tracking-widest">Selecciona tu desafío</p>
         </div>
-        <Link href="/rankings">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border-2 border-[#747474] hover:bg-[#d4d4d4] transition-colors shadow-sm cursor-pointer">
-            <BarChart3 size={16} className="text-[#aa00ff]" />
-            <span className="text-sm font-bold text-[#333333] hidden sm:block">Rankings</span>
-          </div>
-        </Link>
+        <div className="w-10" /> {/* Elemento de equilibrio */}
       </header>
 
       <main className="max-w-4xl mx-auto space-y-16">
         {Object.entries(groupedLevels).map(([groupName, levels], index) => (
           <section key={groupName} className="space-y-6">
             <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-sm border-b-4 ${
-                groupName === "Básico" ? "bg-[#0ba15f] border-[#09804b]" :
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-sm border-b-4 ${groupName === "Básico" ? "bg-[#0ba15f] border-[#09804b]" :
                 groupName === "Intermedio" ? "bg-[#e3c800] border-[#b5a000]" :
-                "bg-[#cb0617] border-[#a20025]"
-              }`}>
+                  "bg-[#cb0617] border-[#a20025]"
+                }`}>
                 {index + 1}
               </div>
               <h2 className="text-2xl font-black text-[#333333] uppercase tracking-wide">{groupName}</h2>
             </div>
-            
+
             <div className="grid md:grid-cols-2 gap-6 pl-16">
               {levels.map((level) => (
                 <Link href={`/game?id=${level.id}`} key={level.id}>
-                  <motion.div 
+                  <motion.div
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="bg-white rounded-3xl p-6 border-2 border-[#d4d4d4] border-b-[6px] hover:border-[#aa00ff] cursor-pointer transition-colors group relative overflow-hidden"
@@ -69,16 +68,16 @@ export default function LevelsPage() {
                         <PlayCircle size={24} />
                       </div>
                     </div>
-                    
+
                     <p className="text-sm text-[#647687] line-clamp-2 mb-4">
                       {level.objective}
                     </p>
-                    
+
                     <div className="flex flex-wrap gap-2">
                       {level.nodes.map(n => n.icon).filter((v, i, a) => a.indexOf(v) === i).map((icon, i) => (
-                         <div key={i} className="w-6 h-6 rounded bg-slate-50 border border-slate-200 flex items-center justify-center text-xs">
-                           {icon}
-                         </div>
+                        <div key={i} className="w-6 h-6 rounded bg-slate-50 border border-slate-200 flex items-center justify-center text-xs">
+                          {icon}
+                        </div>
                       ))}
                     </div>
                   </motion.div>
@@ -96,10 +95,10 @@ export default function LevelsPage() {
             </div>
             <h2 className="text-2xl font-black text-[#333333] uppercase tracking-wide">Modo Especial</h2>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-6 pl-16">
             <Link href="/hardcore">
-              <motion.div 
+              <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="bg-slate-900 rounded-3xl p-6 border-2 border-slate-800 border-b-[6px] hover:border-[#cb0617] cursor-pointer transition-colors group relative overflow-hidden text-white"
@@ -117,11 +116,11 @@ export default function LevelsPage() {
                     <PlayCircle size={24} />
                   </div>
                 </div>
-                
+
                 <p className="text-sm text-slate-400 line-clamp-2 mb-4">
                   Niveles generados aleatoriamente. Resuelve la mayor cantidad posible antes de que se acabe el tiempo.
                 </p>
-                
+
                 <div className="flex flex-wrap gap-2 text-2xl">
                   🏭 🚛 🛒 🏗️ 🙋
                 </div>
@@ -138,11 +137,11 @@ export default function LevelsPage() {
             </div>
             <h2 className="text-2xl font-black text-[#333333] uppercase tracking-wide">Quizzes Teóricos</h2>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-6 pl-16">
             {QUIZZES.map((quiz, index) => (
               <Link href={`/quiz?id=${quiz.id}`} key={quiz.id}>
-                <motion.div 
+                <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="bg-white rounded-3xl p-6 border-2 border-[#d4d4d4] border-b-[6px] hover:border-[#aa00ff] cursor-pointer transition-colors group relative overflow-hidden"
@@ -160,11 +159,11 @@ export default function LevelsPage() {
                       <PlayCircle size={24} />
                     </div>
                   </div>
-                  
+
                   <p className="text-sm text-[#647687] line-clamp-2 mb-4">
                     Demuestra tus conocimientos en este quiz de {quiz.questions.length} preguntas. ¡Cada acierto suma puntos al ranking!
                   </p>
-                  
+
                   <div className="flex flex-wrap gap-2 text-2xl">
                     {quiz.icon}
                   </div>

@@ -18,10 +18,13 @@ import Link from "next/link";
 import { type GameEdge } from "@/lib/levelData";
 import { calculateScore } from "@/lib/gameLogic";
 import { generateHardcoreLevel, type GeneratedLevel } from "@/lib/hardcoreGenerator";
+import { useAuth } from "@/hooks/useAuth";
 
 const TOTAL_TIME = 10 * 60; // 10 minutos en segundos
 
 export default function HardcorePage() {
+  const isAuth = useAuth();
+
   const [isLoaded, setIsLoaded] = useState(false);
   const [currentLevel, setCurrentLevel] = useState<GeneratedLevel | null>(null);
   const [levelNumber, setLevelNumber] = useState(1);
@@ -47,13 +50,6 @@ export default function HardcorePage() {
 
   // Generar primer nivel al montar
   useEffect(() => {
-    // Validar login
-    const userIdStr = localStorage.getItem("user_id");
-    if (!userIdStr) {
-      window.location.href = "/";
-      return;
-    }
-
     const firstLevel = generateHardcoreLevel(1);
     setCurrentLevel(firstLevel);
     setIsLoaded(true);
@@ -139,6 +135,8 @@ export default function HardcorePage() {
     },
     [currentLevel, levelComplete, errors]
   );
+
+  if (isAuth === null) return null;
 
   const handleNextLevel = () => {
     const nextNum = levelNumber + 1;

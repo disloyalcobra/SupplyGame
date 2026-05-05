@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Timer, Trophy, AlertCircle, List, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { getQuizById, type Quiz, type QuizOption } from "@/lib/quizData";
+import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function QuizPage() {
+  const isAuth = useAuth();
+
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   
@@ -74,6 +77,8 @@ export default function QuizPage() {
 
     setShuffledOptions(letteredOptions);
   }, [quiz, currentQuestionIndex]);
+
+  if (isAuth === null) return null;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
