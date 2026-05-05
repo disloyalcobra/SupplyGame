@@ -19,6 +19,7 @@ export default function QuizPage() {
   
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [hasAnswered, setHasAnswered] = useState(false);
+  const [shuffledOptions, setShuffledOptions] = useState<QuizOption[]>([]);
 
   useEffect(() => {
     // Read level ID from URL
@@ -33,7 +34,9 @@ export default function QuizPage() {
       const bgMusic = new Audio("/sonidos/Inspired.mp3");
       bgMusic.loop = true;
       bgMusic.volume = 0.25;
-      bgMusic.play().catch(e => console.warn("Auto-play prevented", e));
+      bgMusic.play().catch(e => {
+        if (e.name !== "AbortError") console.warn("Auto-play prevented", e);
+      });
 
       return () => {
         bgMusic.pause();
@@ -48,6 +51,29 @@ export default function QuizPage() {
     const interval = setInterval(() => setTime((t) => t + 1), 1000);
     return () => clearInterval(interval);
   }, [isComplete, isLoaded, quiz]);
+
+  // Shuffling options
+  useEffect(() => {
+    if (!quiz || !quiz.questions[currentQuestionIndex]) return;
+    
+    const currentQuestion = quiz.questions[currentQuestionIndex];
+    // Create a copy of the options
+    const optionsCopy = [...currentQuestion.options];
+    
+    // Fisher-Yates shuffle
+    for (let i = optionsCopy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [optionsCopy[i], optionsCopy[j]] = [optionsCopy[j], optionsCopy[i]];
+    }
+
+    // Re-assign A, B, C, D based on the new random order
+    const letteredOptions = optionsCopy.map((opt, index) => ({
+      ...opt,
+      id: String.fromCharCode(65 + index) // 65 is 'A'
+    }));
+
+    setShuffledOptions(letteredOptions);
+  }, [quiz, currentQuestionIndex]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -130,28 +156,6 @@ export default function QuizPage() {
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex) / quiz.questions.length) * 100;
-
-  const [shuffledOptions, setShuffledOptions] = useState<QuizOption[]>([]);
-
-  useEffect(() => {
-    if (!quiz || !currentQuestion) return;
-    // Create a copy of the options
-    const optionsCopy = [...currentQuestion.options];
-    
-    // Fisher-Yates shuffle
-    for (let i = optionsCopy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [optionsCopy[i], optionsCopy[j]] = [optionsCopy[j], optionsCopy[i]];
-    }
-
-    // Re-assign A, B, C, D based on the new random order
-    const letteredOptions = optionsCopy.map((opt, index) => ({
-      ...opt,
-      id: String.fromCharCode(65 + index) // 65 is 'A'
-    }));
-
-    setShuffledOptions(letteredOptions);
-  }, [quiz, currentQuestionIndex]);
 
   return (
     <div className="h-screen w-full overflow-hidden flex flex-col bg-slate-50">

@@ -32,7 +32,9 @@ export default function GamePage() {
       const bgMusic = new Audio("/sonidos/Inspired.mp3");
       bgMusic.loop = true;
       bgMusic.volume = 0.25; // Volumen de fondo
-      bgMusic.play().catch(e => console.warn("Auto-play preventeds para bgMusic", e));
+      bgMusic.play().catch(e => {
+        if (e.name !== "AbortError") console.warn("Auto-play prevented", e);
+      });
 
       return () => {
         bgMusic.pause();

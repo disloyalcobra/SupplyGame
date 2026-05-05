@@ -139,7 +139,7 @@ export const INTER_1: Level = {
     { id: "client_norte", name: "Clientes Norte", type: NodeType.CUSTOMER, capacity: 150, region: "Norte", demand: 150, detail: "Demanda: 100 bicicletas", icon: "🙋", x: 700, y: 120 },
     { id: "client_centro", name: "Clientes Centro", type: NodeType.CUSTOMER, capacity: 50, region: "Centro", demand: 50, detail: "Demanda: 50 bicicletas", icon: "🙋", x: 700, y: 340 },
     { id: "client_centro2", name: "Clientes Centro 2", type: NodeType.CUSTOMER, capacity: 50, region: "Centro", demand: 50, detail: "Demanda: 100 bicicletas", icon: "🙋", x: 700, y: 460 },
-    { id: "client_online_centro", name: "Clientes Online centro", type: NodeType.CUSTOMER, capacity: 25, region: "Centro", demand: 25, requiresInternet: true, detail: "Solo online", icon: "🙋", x: 840, y: 150 },
+    { id: "client_online_centro", name: "Clientes Online centro", type: NodeType.CUSTOMER, capacity: 50, region: "Centro", demand: 50, requiresInternet: true, detail: "Solo online", icon: "🙋", x: 840, y: 150 },
     { id: "int_centro", name: "Canal Internet Centro", type: NodeType.INTERNET, capacity: 50, region: "Centro", detail: "Online", icon: "@", x: 840, y: 350 },
   ],
 };
