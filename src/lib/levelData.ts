@@ -78,12 +78,12 @@ export const BASIC_1: Level = {
     { id: "fab_centro", name: "Fabrica Centro", type: NodeType.FACTORY, capacity: 100, region: "Centro", detail: "Producción: 100 bicicletas", icon: "🏭", x: 80, y: 350 },
     { id: "trans_1", name: "Camión de carga cap 50", type: NodeType.TRANSPORT, capacity: 50, region: "Centro", detail: "Cap. 50 unid.", icon: "🚚", x: 280, y: 250 },
     { id: "trans_2", name: "Camión de carga cap 50", type: NodeType.TRANSPORT, capacity: 50, region: "Centro", detail: "Cap. 50 unid.", icon: "🚚", x: 280, y: 450 },
-    { id: "shop_1", name: "Tienda Centro", type: NodeType.SHOP, capacity: 50, demand: 0, region: "Centro", detail: "50 bicicletas", icon: "🛒", x: 480, y: 250 },
-    { id: "shop_2", name: "Tienda Centro 2", type: NodeType.SHOP, capacity: 50, demand: 0, region: "Centro", detail: "50 bicicletas", icon: "🛒", x: 480, y: 450 },
-    { id: "client_centro", name: "Clientes Centro", type: NodeType.CUSTOMER, capacity: 0, demand: 50, region: "Centro", detail: "Demanda: 50 bicicletas", icon: "🙋", x: 480, y: 100 },
+    { id: "shop_1", name: "Tienda Centro", type: NodeType.SHOP, capacity: 50, demand: 50, region: "Centro", detail: "50 bicicletas", icon: "🛒", x: 480, y: 250 },
+    { id: "shop_2", name: "Tienda Centro 2", type: NodeType.SHOP, capacity: 50, demand: 50, region: "Centro", detail: "50 bicicletas", icon: "🛒", x: 480, y: 450 },
+    { id: "client_centro", name: "Clientes Centro", type: NodeType.CUSTOMER, capacity: 50, demand: 50, region: "Centro", detail: "Demanda: 50 bicicletas", icon: "🙋", x: 480, y: 100 },
     { id: "trans_3", name: "Camión de carga cap 50", type: NodeType.TRANSPORT, capacity: 50, region: "Centro", detail: "Cap. 50 unid.", icon: "🚚", x: 680, y: 450 },
     { id: "internet_centro", name: "Canal Internet Centro", type: NodeType.INTERNET, capacity: 100, region: "Centro", detail: "Canal de venta online", icon: "@", x: 840, y: 350 },
-    { id: "client_online", name: "Clientes Online Centro", type: NodeType.CUSTOMER, capacity: 0, demand: 50, region: "Centro", requiresInternet: true, detail: "Solo online", icon: "🙋", x: 840, y: 150 },
+    { id: "client_online", name: "Clientes Online Centro", type: NodeType.CUSTOMER, capacity: 50, demand: 50, region: "Centro", requiresInternet: true, detail: "Solo online", icon: "🙋", x: 840, y: 150 },
 
   ],
 };
@@ -223,7 +223,8 @@ export const ADVANCED_1: Level = {
   nodes: [
     { id: "fab_centro1", name: "Centro 1", type: NodeType.FACTORY, capacity: 200, region: "Centro", detail: "Producción: 200 bicicletas", icon: "🏭", x: 160, y: 200 },
     { id: "fab_centro2", name: "Centro 2", type: NodeType.FACTORY, capacity: 200, region: "Centro", detail: "Producción: 200 bicicletas", icon: "🏭", x: 160, y: 350 },
-    { id: "fab_norte", name: "Norte", type: NodeType.FACTORY, capacity: 100, region: "Norte", detail: "Producción: 500 bicicletas", icon: "🏭", x: 160, y: 500 },
+    { id: "fab_norte1", name: "Norte 1", type: NodeType.FACTORY, capacity: 100, region: "Norte", detail: "Producción: 500 bicicletas", icon: "🏭", x: 160, y: 500 },
+    { id: "fab_norte2", name: "Norte 2", type: NodeType.FACTORY, capacity: 200, region: "Norte", detail: "Producción: 500 bicicletas", icon: "🏭", x: 160, y: 500 },
     { id: "trailer_a", name: "Camión de carga cap 100", type: NodeType.TRANSPORT, capacity: 100, region: "Global", detail: "Cap. 100 unid.", icon: "🚛", x: 260, y: 200 },
     { id: "trailer_b", name: "Camión de carga cap 100", type: NodeType.TRANSPORT, capacity: 100, region: "Global", detail: "Cap. 100 unid.", icon: "🚛", x: 260, y: 420 },
     { id: "cedis_centro", name: "CEDIS Centro", type: NodeType.WAREHOUSE, capacity: 400, region: "Centro", detail: "Hub OBLIGATORIO — Cap. 400 unid.", icon: "🏗️", x: 440, y: 300 },
@@ -232,16 +233,22 @@ export const ADVANCED_1: Level = {
     { id: "trailer_e", name: "Camión de carga cap 100", type: NodeType.TRANSPORT, capacity: 100, region: "Global", detail: "Cap. 100 unid.", icon: "🚛", x: 640, y: 160 },
     { id: "trailer_f", name: "Camión de carga cap 100", type: NodeType.TRANSPORT, capacity: 100, region: "Global", detail: "Cap. 100 unid.", icon: "🚛", x: 640, y: 420 },
     { id: "trailer_g", name: "Camión de carga cap 100", type: NodeType.TRANSPORT, capacity: 100, region: "Global", detail: "Cap. 100 unid.", icon: "🚛", x: 640, y: 420 },
+    { id: "trailer_h", name: "Camión de carga cap 100", type: NodeType.TRANSPORT, capacity: 100, region: "Global", detail: "Cap. 100 unid.", icon: "🚛", x: 640, y: 420 },
     { id: "camion_a1", name: "Camión de carga cap 50", type: NodeType.TRANSPORT, capacity: 50, region: "Global", detail: "Cap. 50 unid.", icon: "🚚", x: 260, y: 460 },
     { id: "camion_b1", name: "Camión de carga cap 50", type: NodeType.TRANSPORT, capacity: 50, region: "Global", detail: "Cap. 50 unid.", icon: "🚚", x: 260, y: 460 },
     { id: "camion_c1", name: "Camión de carga cap 50", type: NodeType.TRANSPORT, capacity: 50, region: "Global", detail: "Cap. 50 unid.", icon: "🚚", x: 260, y: 460 },
+    { id: "camion_d1", name: "Camión de carga cap 50", type: NodeType.TRANSPORT, capacity: 50, region: "Global", detail: "Cap. 50 unid.", icon: "🚚", x: 260, y: 460 },
+    { id: "camion_e1", name: "Camión de carga cap 50", type: NodeType.TRANSPORT, capacity: 50, region: "Global", detail: "Cap. 50 unid.", icon: "🚚", x: 260, y: 460 },
     { id: "shop_centro", name: "Tienda Centro", type: NodeType.SHOP, capacity: 100, region: "Centro", demand: 100, detail: "Necesita: 100 bicicletas", icon: "🛒", x: 840, y: 100 },
-    { id: "shop_norte", name: "Tienda Norte", type: NodeType.SHOP, capacity: 100, region: "Norte", demand: 100, detail: "Necesita: 100 bicicletas", icon: "🛒", x: 840, y: 200 },
     { id: "int_centro", name: "Canal Internet Centro", type: NodeType.INTERNET, capacity: 50, region: "Centro", detail: "Online", icon: "@", x: 840, y: 300 },
     { id: "int_norte", name: "Canal Internet Norte", type: NodeType.INTERNET, capacity: 50, region: "Norte", detail: "Online", icon: "@", x: 840, y: 400 },
     { id: "detallista_centro", name: "Detallista Centro", type: NodeType.RETAILER, capacity: 150, region: "Centro", demand: 150, detail: "Necesita: 150 bicicletas", icon: "🏪", x: 840, y: 500 },
+    { id: "detallista_norte", name: "Detallista Norte", type: NodeType.RETAILER, capacity: 150, region: "Norte", demand: 150, detail: "Necesita: 150 bicicletas", icon: "🏪", x: 840, y: 600 },
+    { id: "detallista_norte2", name: "Detallista Norte", type: NodeType.RETAILER, capacity: 150, region: "Norte", demand: 150, detail: "Necesita: 150 bicicletas", icon: "🏪", x: 840, y: 700 },
     { id: "client_centro1", name: "Clientes Centro 1", type: NodeType.CUSTOMER, capacity: 100, region: "Centro", demand: 100, detail: "Demanda: 100 bicicletas", icon: "🙋", x: 1000, y: 100 },
-    { id: "client_norte", name: "Clientes Norte", type: NodeType.CUSTOMER, capacity: 50, region: "Norte", demand: 50, detail: "Demanda: 100 bicicletas", icon: "🙋", x: 1000, y: 200 },
+    { id: "client_norte", name: "Clientes Norte 1", type: NodeType.CUSTOMER, capacity: 50, region: "Norte", demand: 50, detail: "Demanda: 100 bicicletas", icon: "🙋", x: 1000, y: 200 },
+    { id: "client_norte2", name: "Clientes Norte 2", type: NodeType.CUSTOMER, capacity: 100, region: "Norte", demand: 100, detail: "Demanda: 100 bicicletas", icon: "🙋", x: 1000, y: 200 },
+    { id: "client_norte3", name: "Clientes Norte 3", type: NodeType.CUSTOMER, capacity: 100, region: "Norte", demand: 100, detail: "Demanda: 100 bicicletas", icon: "🙋", x: 1000, y: 200 },
     { id: "client_online_centro", name: "Clientes Online centro", type: NodeType.CUSTOMER, capacity: 50, region: "Centro", demand: 50, requiresInternet: true, detail: "Solo online", icon: "🙋", x: 1000, y: 300 },
     { id: "client_online_norte", name: "Clientes Online Norte", type: NodeType.CUSTOMER, capacity: 50, region: "Norte", demand: 50, requiresInternet: true, detail: "Solo online", icon: "🙋", x: 1000, y: 400 },
     { id: "client_centro2", name: "Clientes Centro 2", type: NodeType.CUSTOMER, capacity: 150, region: "Centro", demand: 150, detail: "Demanda: 150 bicicletas", icon: "🙋", x: 1000, y: 500 },
@@ -263,7 +270,7 @@ export const ADVANCED_2: Level = {
     { id: "f_n2", name: "Fabrica Norte 2", type: NodeType.FACTORY, capacity: 100, region: "Norte", detail: "Prod: 100", icon: "🏭", x: 160, y: 550 },
 
 
-    { id: "shop_c", name: "Tienda Centro", type: NodeType.SHOP, capacity: 50, region: "Centro", demand: 50, detail: "Cap: 150", icon: "🛒", x: 480, y: 350 },
+    { id: "shop_c", name: "Tienda Centro", type: NodeType.SHOP, capacity: 100, region: "Centro", demand: 100, detail: "Cap: 150", icon: "🛒", x: 480, y: 350 },
 
     { id: "tr_1", name: "Trailer de carga cap 100", type: NodeType.TRANSPORT, capacity: 100, region: "Global", detail: "Cap: 100", icon: "🚛", x: 260, y: 100 },
     { id: "tr_2", name: "Trailer de carga cap 100", type: NodeType.TRANSPORT, capacity: 100, region: "Global", detail: "Cap: 100", icon: "🚛", x: 260, y: 300 },
@@ -276,7 +283,6 @@ export const ADVANCED_2: Level = {
     { id: "camion_b1", name: "Camión de carga cap 50", type: NodeType.TRANSPORT, capacity: 50, region: "Global", detail: "Cap. 50 unid.", icon: "🚚", x: 260, y: 460 },
     { id: "camion_c1", name: "Camión de carga cap 50", type: NodeType.TRANSPORT, capacity: 50, region: "Global", detail: "Cap. 50 unid.", icon: "🚚", x: 260, y: 460 },
     { id: "camion_d1", name: "Camión de carga cap 50", type: NodeType.TRANSPORT, capacity: 50, region: "Global", detail: "Cap. 50 unid.", icon: "🚚", x: 260, y: 460 },
-    { id: "camion_e1", name: "Camión de carga cap 50", type: NodeType.TRANSPORT, capacity: 50, region: "Global", detail: "Cap. 50 unid.", icon: "🚚", x: 260, y: 460 },
 
     { id: "ret_c", name: "Detallista Norte", type: NodeType.RETAILER, capacity: 150, region: "Norte", demand: 150, detail: "Cap: 150", icon: "🏪", x: 500, y: 250 },
 

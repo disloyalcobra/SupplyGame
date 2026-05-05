@@ -226,20 +226,32 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
 
   const removeEdge = (from: string, to: string) => {
     if (completed) return;
+    const exists = edges.some((e) => e.from === from && e.to === to);
+    if (!exists) return;
+
     setEdges((prev) => {
       const filtered = prev.filter((e) => !(e.from === from && e.to === to));
       return recalculateFlows(placedNodes, filtered);
     });
+    onScoreChange(-100);
   };
 
   // Ayudante para regresar un nodo al sidebar (opcional: doble clic o botón)
   const returnNodeToSidebar = (node: GameNode) => {
     if (completed || node.type === NodeType.FACTORY || node.type === NodeType.CUSTOMER) return;
-    // Eliminar conexiones relacionadas
-    setEdges((prev) => {
-      const filtered = prev.filter((e) => e.from !== node.id && e.to !== node.id);
-      return recalculateFlows(placedNodes.filter(n => n.id !== node.id), filtered);
-    });
+    
+    // Calcular conexiones relacionadas antes de limpiar
+    const relatedEdges = edges.filter(e => e.from === node.id || e.to === node.id);
+    const removedCount = relatedEdges.length;
+
+    if (removedCount > 0) {
+      setEdges((prev) => {
+        const filtered = prev.filter((e) => e.from !== node.id && e.to !== node.id);
+        return recalculateFlows(placedNodes.filter(n => n.id !== node.id), filtered);
+      });
+      onScoreChange(-100 * removedCount);
+    }
+
     setPlacedNodes((prev) => prev.filter((n) => n.id !== node.id));
     setSidebarNodes((prev) => [...prev, node]);
     if (selectedNodeId === node.id) setSelectedNodeId(null);
