@@ -1,0 +1,15 @@
+CREATE TABLE Usuario (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT,
+    universidad TEXT NOT NULL
+); 
+CREATE TABLE Partida (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    nivel TEXT NOT NULL,
+    puntuacion INTEGER NOT NULL CHECK (puntuacion >= 0),
+    tiempo_total INTEGER NOT NULL CHECK (tiempo_total > 0),
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES Usuario(id)
+);
