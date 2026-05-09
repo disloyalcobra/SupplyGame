@@ -168,10 +168,6 @@ export default function LandingPage() {
         </Button>
       </section>
 
-      <footer className="w-full py-12 border-t text-center text-slate-400 font-bold uppercase text-xs tracking-widest">
-        Supply Chain Game &copy; 2026 | Proyecto Educativo
-      </footer>
-
       <RegistrationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

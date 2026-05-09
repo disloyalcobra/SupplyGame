@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { GameCanvas } from "@/components/game/GameCanvas";
 import { Button } from "@/components/ui/button";
 import { Timer, Trophy, AlertCircle, Home, ChevronRight, List } from "lucide-react";
@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function GamePage() {
   const isAuth = useAuth();
+  const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
   const [level, setLevel] = useState<Level>(BASIC_1);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -20,21 +21,28 @@ export default function GamePage() {
   const [errors, setErrors] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     // Read level ID from URL on client side to avoid hydration mismatch
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
-    if (id) {
-      setLevel(getLevelById(id));
-    }
+    const loadedLevel = getLevelById(id || "basic_1");
+    setLevel(loadedLevel);
     setIsLoaded(true);
+
+    // Si es el nivel 1, mostrar tutorial
+    if (loadedLevel.id === "basic_1") {
+      setShowTutorial(true);
+    }
 
     // Reproducir música de fondo para niveles normales
     if (typeof window !== "undefined") {
       const bgMusic = new Audio("/sonidos/Inspired.mp3");
       bgMusic.loop = true;
       bgMusic.volume = 0.25; // Volumen de fondo
+      bgMusicRef.current = bgMusic;
+      
       bgMusic.play().catch(e => {
         if (e.name !== "AbortError") console.warn("Auto-play prevented", e);
       });
@@ -42,15 +50,27 @@ export default function GamePage() {
       return () => {
         bgMusic.pause();
         bgMusic.currentTime = 0;
+        bgMusicRef.current = null;
       };
     }
   }, []);
 
+  // Manejar el volumen de la música según el tutorial
   useEffect(() => {
-    if (isComplete || !isLoaded) return;
+    if (bgMusicRef.current) {
+      if (showTutorial) {
+        bgMusicRef.current.volume = 0;
+      } else {
+        bgMusicRef.current.volume = 0.25;
+      }
+    }
+  }, [showTutorial]);
+
+  useEffect(() => {
+    if (isComplete || !isLoaded || showTutorial) return;
     const interval = setInterval(() => setTime((t) => t + 1), 1000);
     return () => clearInterval(interval);
-  }, [isComplete, isLoaded]);
+  }, [isComplete, isLoaded, showTutorial]);
 
   if (isAuth === null) return null;
 
@@ -205,6 +225,55 @@ export default function GamePage() {
                     Elegir otro nivel
                   </Button>
                 </Link>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Modal de Tutorial (Nivel 1) */}
+      <AnimatePresence>
+        {showTutorial && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100]"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              className="w-full max-w-4xl bg-[#111] rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+            >
+              <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-black text-white uppercase tracking-tight">Tutorial del Juego</h2>
+                  <p className="text-slate-400 text-sm font-medium">Aprende los conceptos básicos antes de empezar</p>
+                </div>
+                <Button 
+                  onClick={() => setShowTutorial(false)}
+                  className="bg-primary hover:bg-primary/90 text-white font-bold rounded-xl px-6"
+                >
+                  Omitir y Jugar
+                </Button>
+              </div>
+
+              <div className="aspect-video bg-black relative group">
+                <video 
+                  src="/Video/Tutorial.mp4" 
+                  autoPlay 
+                  controls 
+                  className="w-full h-full"
+                  onEnded={() => setShowTutorial(false)}
+                />
+              </div>
+
+              <div className="p-6 bg-white/5 flex items-center justify-center">
+                <Button 
+                  onClick={() => setShowTutorial(false)}
+                  className="h-14 px-12 text-lg font-black bg-primary hover:bg-primary/80 border-b-4 border-primary-dark text-white rounded-2xl shadow-lg"
+                >
+                  ¡Entendido, a jugar!
+                </Button>
               </div>
             </motion.div>
           </motion.div>

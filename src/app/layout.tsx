@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: "Descubre el mundo de la cadena de suministro con nuestro simulador educativo interactivo.",
 };
 
+import { Footer } from "@/components/Footer";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -19,8 +21,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${outfit.variable} antialiased`}>
-      <body className="min-h-screen bg-white font-sans text-slate-900">
-        {children}
+      <body className="min-h-screen bg-white font-sans text-slate-900 flex flex-col">
+        <main className="flex-1">
+          {children}
+        </main>
+        <Footer />
       </body>
     </html>
   );
