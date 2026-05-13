@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GameNode, GameEdge, NodeType, NODE_META } from "@/lib/levelData";
 import { tryConnect, isLevelComplete, getDemandSatisfaction, recalculateFlows } from "@/lib/gameLogic";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import { MousePointer2, Move, ZoomIn, ZoomOut, AlertCircle, Info } from "lucide-react";
 
 interface GameCanvasProps {
@@ -83,6 +83,8 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
   // Interaction States
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [movingNodeId, setMovingNodeId] = useState<string | null>(null);
+  const transformComponentRef = useRef<ReactZoomPanPinchRef>(null);
+  const lastRightClickTime = useRef(0);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const ptrDownPos = useRef({ x: 0, y: 0 });
@@ -99,6 +101,20 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
     const mapped = pt.matrixTransform(ctm.inverse());
     return { x: mapped.x, y: mapped.y };
   }, []);
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const now = Date.now();
+    const DOUBLE_CLICK_DELAY = 300;
+
+    if (now - lastRightClickTime.current < DOUBLE_CLICK_DELAY) {
+      if (transformComponentRef.current) {
+        // Zoom out significativamente al hacer doble clic derecho
+        transformComponentRef.current.zoomOut(0.5, 400);
+      }
+    }
+    lastRightClickTime.current = now;
+  };
 
   const addFeedback = (text: string, type: FeedbackMessage["type"], x: number, y: number) => {
     const id = feedbackIdCounter++;
@@ -307,14 +323,19 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
             <ZoomIn size={14} className="shrink-0 mt-0.5" />
             <p><strong>Rueda de ratón</strong> para acercar o alejar el mapa.</p>
           </div>
+          <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
+            <MousePointer2 size={14} className="shrink-0 mt-0.5" />
+            <p><strong>Doble clic derecho</strong> para alejar la vista rápidamente.</p>
+          </div>
         </div>
       </aside>
 
       {/* --- Área del Mapa SVG --- */}
       <main className="flex-1 relative overflow-hidden bg-[#f4f4f4]">
         <TransformWrapper
+          ref={transformComponentRef}
           panning={{ disabled: !!movingNodeId }}
-          wheel={{ step: 0.05 }}
+          wheel={{ step: 0.1 }}
           minScale={0.15}
           maxScale={4}
           initialScale={0.6}
@@ -333,6 +354,7 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
               onPointerMove={handleSVGPointerMove}
               onPointerUp={handleSVGPointerUp}
               onPointerLeave={handleSVGPointerUp}
+              onContextMenu={handleContextMenu}
             >
               <defs>
                 <filter id="neonGlowSelect" x="-50%" y="-50%" width="200%" height="200%">
