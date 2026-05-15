@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 export function Footer() {
   const pathname = usePathname();
-  
+
   // No mostrar el footer en la pantalla de juego para evitar distracciones y problemas de layout
   const fullScreenPaths = ["/game", "/hardcore", "/quiz"];
   if (fullScreenPaths.includes(pathname)) return null;
@@ -21,7 +21,7 @@ export function Footer() {
             Versión v0.1.0 | Mayo 2025
           </p>
           <p className="text-xs">
-            Desarrollado por <span className="text-[#cb0617] font-bold">José Pablo Mateos Gamboa</span>
+            Desarrollado por <span className="text-[#cb0617] font-bold">José Pablo MG</span>
           </p>
         </div>
 
@@ -34,11 +34,18 @@ export function Footer() {
               Aviso de Privacidad
             </Link>
           </div>
-          <img 
-            src="/imagenes/CC_BY-NC-ND.svg.png" 
-            alt="Creative Commons BY-NC-ND" 
-            className="h-8 opacity-80 hover:opacity-100 transition-opacity"
-          />
+          <div className="flex items-center gap-6">
+            <img 
+              src="/imagenes/CC_BY-NC-ND.svg.png" 
+              alt="Creative Commons BY-NC-ND" 
+              className="h-10 opacity-80 hover:opacity-100 transition-opacity"
+            />
+            <img 
+              src="/imagenes/umadlogo.png" 
+              alt="UMAD Logo" 
+              className="h-10 opacity-80 hover:opacity-100 transition-opacity"
+            />
+          </div>
         </div>
       </div>
     </footer>
