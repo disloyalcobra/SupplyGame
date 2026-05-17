@@ -28,7 +28,7 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
   // Inicializamos dividiendo los nodos
   const [placedNodes, setPlacedNodes] = useState<GameNode[]>([]);
   const [sidebarNodes, setSidebarNodes] = useState<GameNode[]>([]);
-  
+
   useEffect(() => {
     // Al cargar, solo FACTORY y CUSTOMER van al mapa por defecto.
     const initialPlaced = nodes.filter(
@@ -37,10 +37,12 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
     const initialSidebar = nodes.filter(
       (n) => n.type !== NodeType.FACTORY && n.type !== NodeType.CUSTOMER
     );
-    
-    // Asignar posiciones iniciales seguras en el lienzo si no tienen (aunque las del nivel ya traen x,y)
-    // Para simplificar, respetamos sus x,y del nivel.
-    setPlacedNodes(initialPlaced);
+
+    // Centramos los nodos iniciales desplazándolos 1000px (la cuadrícula es 3000x3000 y están en 0-1000)
+    const offsetX = 1000;
+    const offsetY = 1000;
+
+    setPlacedNodes(initialPlaced.map(n => ({ ...n, x: n.x + offsetX, y: n.y + offsetY })));
     setSidebarNodes(initialSidebar);
     setEdges([]);
     setSelectedNodeId(null);
@@ -70,7 +72,7 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
       if (type === "popup") audio = audioPopup.current;
       if (type === "error") audio = audioError.current;
       if (type === "win") audio = audioWin.current;
-      
+
       if (audio) {
         audio.currentTime = 0;
         audio.play().catch(e => console.warn("Audio play prevented:", e));
@@ -109,8 +111,26 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
 
     if (now - lastRightClickTime.current < DOUBLE_CLICK_DELAY) {
       if (transformComponentRef.current) {
-        // Zoom out significativamente al hacer doble clic derecho
-        transformComponentRef.current.zoomOut(0.5, 400);
+        // Zoom out manteniendo el centro en la posición del ratón
+        // Ignoramos el tipado estricto con `any` ya que la librería exporta diferentes interfaces según su versión
+        const state = transformComponentRef.current.state || (transformComponentRef.current.instance as any)?.transformState;
+        if (!state) return;
+
+        const newScale = Math.max(state.scale - 0.5, 0.15);
+
+        // Coordenadas relativas del ratón en el contenedor
+        const wrapperElement = transformComponentRef.current.instance?.wrapperComponent || (e.currentTarget as Element).parentElement;
+        const rect = wrapperElement?.getBoundingClientRect() || { left: 0, top: 0 };
+        const relX = e.clientX - rect.left;
+        const relY = e.clientY - rect.top;
+
+        const ptX = (relX - state.positionX) / state.scale;
+        const ptY = (relY - state.positionY) / state.scale;
+
+        const newPosX = relX - ptX * newScale;
+        const newPosY = relY - ptY * newScale;
+
+        transformComponentRef.current.setTransform(newPosX, newPosY, newScale, 400);
       }
     }
     lastRightClickTime.current = now;
@@ -138,9 +158,11 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
     try {
       const node: GameNode = JSON.parse(data);
       const coords = getSVGCoords(e.clientX, e.clientY);
-      
+      const clampedX = Math.max(45, Math.min(2955, coords.x));
+      const clampedY = Math.max(45, Math.min(2955, coords.y));
+
       setSidebarNodes((prev) => prev.filter((n) => n.id !== node.id));
-      setPlacedNodes((prev) => [...prev, { ...node, x: coords.x, y: coords.y }]);
+      setPlacedNodes((prev) => [...prev, { ...node, x: clampedX, y: clampedY }]);
     } catch (err) {
       console.error(err);
     }
@@ -154,7 +176,7 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
   const handleNodePointerDown = (e: React.PointerEvent, nodeId: string) => {
     if (completed) return;
     e.stopPropagation();
-    
+
     // Ceder control del evento al puntero para tracking
     (e.target as Element).setPointerCapture(e.pointerId);
 
@@ -167,7 +189,7 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
     if (movingNodeId) {
       const dx = e.clientX - ptrDownPos.current.x;
       const dy = e.clientY - ptrDownPos.current.y;
-      
+
       // Si se mueve más de 3px en la pantalla, consideramos que es un "arrastre"
       if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
         isDraggingRef.current = true;
@@ -175,8 +197,10 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
 
       if (isDraggingRef.current) {
         const pt = getSVGCoords(e.clientX, e.clientY);
+        const clampedX = Math.max(45, Math.min(2955, pt.x));
+        const clampedY = Math.max(45, Math.min(2955, pt.y));
         setPlacedNodes((prev) =>
-          prev.map((n) => (n.id === movingNodeId ? { ...n, x: pt.x, y: pt.y } : n))
+          prev.map((n) => (n.id === movingNodeId ? { ...n, x: clampedX, y: clampedY } : n))
         );
       }
     }
@@ -221,7 +245,7 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
           setEdges(newEdges);
           onScoreChange(100);
           addFeedback(`✅ +100 Conectado`, "success", toNode.x, toNode.y - 50);
-          
+
           if (isLevelComplete(nodes, placedNodes, newEdges) && !completed) {
             setCompleted(true);
             playSound("win");
@@ -255,7 +279,7 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
   // Ayudante para regresar un nodo al sidebar (opcional: doble clic o botón)
   const returnNodeToSidebar = (node: GameNode) => {
     if (completed || node.type === NodeType.FACTORY || node.type === NodeType.CUSTOMER) return;
-    
+
     // Calcular conexiones relacionadas antes de limpiar
     const relatedEdges = edges.filter(e => e.from === node.id || e.to === node.id);
     const removedCount = relatedEdges.length;
@@ -283,12 +307,12 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
           </h3>
           <p className="text-xs text-slate-500 mt-1 font-medium">Arrastra los nodos hacia el mapa.</p>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {sidebarNodes.length === 0 ? (
             <div className="text-center p-6 border-2 border-dashed border-slate-200 rounded-xl">
               <span className="text-2xl block mb-2">🎉</span>
-              <p className="text-xs font-bold text-slate-400 uppercase">Todos los nodos<br/>en el mapa</p>
+              <p className="text-xs font-bold text-slate-400 uppercase">Todos los nodos<br />en el mapa</p>
             </div>
           ) : (
             sidebarNodes.map((node) => {
@@ -321,7 +345,7 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
           </div>
           <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
             <ZoomIn size={14} className="shrink-0 mt-0.5" />
-            <p><strong>Rueda de ratón</strong> para acercar o alejar el mapa.</p>
+            <p><strong>Arrastra el mapa</strong> para navegar por la cuadrícula.</p>
           </div>
           <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
             <MousePointer2 size={14} className="shrink-0 mt-0.5" />
@@ -335,13 +359,14 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
         <TransformWrapper
           ref={transformComponentRef}
           panning={{ disabled: !!movingNodeId }}
-          wheel={{ step: 0.1 }}
+          wheel={{ disabled: true }}
           minScale={0.15}
           maxScale={4}
           initialScale={0.6}
           limitToBounds={false}
-          initialPositionX={50}
-          initialPositionY={50}
+          initialPositionX={-400}
+          initialPositionY={-400}
+          centerOnInit={false}
         >
           <TransformComponent wrapperClass="w-full h-full" contentClass="w-[3000px] h-[2000px]">
             <svg
@@ -558,7 +583,7 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
             </svg>
           </TransformComponent>
         </TransformWrapper>
-        
+
         {/* Panel de Demanda Inferior Derecho */}
         <div className="absolute bottom-6 right-6 bg-[#d4d4d4]/95 backdrop-blur-md rounded-2xl border-2 border-[#747474] p-5 shadow-xl space-y-3 max-w-[240px] pointer-events-none z-10">
           <div className="flex items-center gap-2 border-b-2 border-slate-100 pb-2">
