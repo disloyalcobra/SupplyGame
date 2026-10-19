@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { GameCanvas } from "@/components/game/GameCanvas";
 import { Button } from "@/components/ui/button";
 import { Timer, Trophy, AlertCircle, Home, ChevronRight, List } from "lucide-react";
 import Link from "next/link";
 import { BASIC_1, type Level, type GameEdge, getLevelById, ALL_LEVELS } from "@/lib/levelData";
 import { calculateScore } from "@/lib/gameLogic";
+import { startBgMusic, stopBgMusic, muteMusic } from "@/lib/bgMusic";
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function GamePage() {
   const isAuth = useAuth();
-  const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
   const [level, setLevel] = useState<Level>(BASIC_1);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -37,33 +37,16 @@ export default function GamePage() {
     }
 
     // Reproducir música de fondo para niveles normales
-    if (typeof window !== "undefined") {
-      const bgMusic = new Audio("/sonidos/Inspired.mp3");
-      bgMusic.loop = true;
-      bgMusic.volume = 0.25; // Volumen de fondo
-      bgMusicRef.current = bgMusic;
-      
-      bgMusic.play().catch(e => {
-        if (e.name !== "AbortError") console.warn("Auto-play prevented", e);
-      });
+    startBgMusic("/sonidos/Inspired.mp3");
 
-      return () => {
-        bgMusic.pause();
-        bgMusic.currentTime = 0;
-        bgMusicRef.current = null;
-      };
-    }
+    return () => {
+      stopBgMusic();
+    };
   }, []);
 
   // Manejar el volumen de la música según el tutorial
   useEffect(() => {
-    if (bgMusicRef.current) {
-      if (showTutorial) {
-        bgMusicRef.current.volume = 0;
-      } else {
-        bgMusicRef.current.volume = 0.25;
-      }
-    }
+    muteMusic(showTutorial);
   }, [showTutorial]);
 
   useEffect(() => {

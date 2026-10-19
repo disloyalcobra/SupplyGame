@@ -3,10 +3,13 @@ import * as fs from "fs";
 import * as path from "path";
 import * as dotenv from "dotenv";
 
+dotenv.config({ path: ".env.local" });
 dotenv.config({ path: ".env" });
 
+const dbUrl = process.env.TURSO_DATABASE_URL || "file:dev.db";
+
 const db = createClient({
-  url: process.env.TURSO_DATABASE_URL || "",
+  url: dbUrl,
   authToken: process.env.TURSO_AUTH_TOKEN || "",
 });
 

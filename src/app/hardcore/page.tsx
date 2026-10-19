@@ -18,6 +18,7 @@ import Link from "next/link";
 import { type GameEdge } from "@/lib/levelData";
 import { calculateScore } from "@/lib/gameLogic";
 import { generateHardcoreLevel, type GeneratedLevel } from "@/lib/hardcoreGenerator";
+import { startBgMusic, stopBgMusic } from "@/lib/bgMusic";
 import { useAuth } from "@/hooks/useAuth";
 
 const TOTAL_TIME = 10 * 60; // 10 minutos en segundos
@@ -55,17 +56,11 @@ export default function HardcorePage() {
     setIsLoaded(true);
 
     // Reproducir música de fondo para Hardcore
-    if (typeof window !== "undefined") {
-      const bgMusic = new Audio("/sonidos/bensound-erf.mp3");
-      bgMusic.loop = true;
-      bgMusic.volume = 0.25; // Volumen de fondo
-      bgMusic.play().catch(e => console.warn("Auto-play preventeds para bgMusic", e));
+    startBgMusic("/sonidos/bensound-erf.mp3");
 
-      return () => {
-        bgMusic.pause();
-        bgMusic.currentTime = 0;
-      };
-    }
+    return () => {
+      stopBgMusic();
+    };
   }, []);
 
   // Cuenta regresiva

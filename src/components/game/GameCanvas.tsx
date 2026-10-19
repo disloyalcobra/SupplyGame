@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { GameNode, GameEdge, NodeType, NODE_META } from "@/lib/levelData";
 import { tryConnect, isLevelComplete, getDemandSatisfaction, recalculateFlows } from "@/lib/gameLogic";
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
-import { MousePointer2, Move, ZoomIn, ZoomOut, AlertCircle, Info } from "lucide-react";
+import { MousePointer2, Move, ZoomIn, ZoomOut, AlertCircle, Info, Volume2, VolumeX } from "lucide-react";
+import { getMusicVolume, setMusicVolume, toggleMusicMute, isMusicMuted, DEFAULT_MUSIC_VOLUME } from "@/lib/bgMusic";
 
 interface GameCanvasProps {
   nodes: GameNode[];
@@ -86,11 +87,86 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [movingNodeId, setMovingNodeId] = useState<string | null>(null);
   const transformComponentRef = useRef<ReactZoomPanPinchRef>(null);
-  const lastRightClickTime = useRef(0);
+
+  // --- Control de volumen de la música ---
+  // GameCanvas solo se monta en el cliente (las páginas devuelven null hasta isLoaded),
+  // por lo que leer localStorage en el inicializador es seguro.
+  const [musicVolume, setMusicVolumeState] = useState(() =>
+    typeof window === "undefined" ? Math.round(DEFAULT_MUSIC_VOLUME * 100) : Math.round(getMusicVolume() * 100)
+  );
+  const [musicMuted, setMusicMuted] = useState(() =>
+    typeof window === "undefined" ? false : isMusicMuted()
+  );
+
+  const handleVolumeChange = (value: number) => {
+    setMusicVolumeState(value);
+    setMusicVolume(value / 100);
+    setMusicMuted(false);
+  };
+
+  const handleToggleMute = () => {
+    const newMuted = toggleMusicMute();
+    setMusicMuted(newMuted);
+  };
 
   const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const ptrDownPos = useRef({ x: 0, y: 0 });
   const isDraggingRef = useRef(false);
+
+  // --- Zoom con la rueda del ratón (calibrado) ---
+  // El zoom de la librería es aditivo y varía según el navegador (Chrome envía ~100 px
+  // por muesca y Firefox ~3 líneas), lo que provoca saltos bruscos. Aquí usamos un
+  // factor multiplicativo, así el zoom crece de forma proporcional y constante.
+  const MIN_SCALE = 0.15;
+  const MAX_SCALE = 4;
+  const WHEEL_SENSITIVITY = 0.0012; // menor = más lento
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheelZoom = (e: WheelEvent) => {
+      const ref = transformComponentRef.current;
+      if (!ref) return;
+
+      // Detectamos que el mapa esté listo antes de tocar la transformación
+      const instance = ref.instance;
+      const state = instance?.state;
+      if (!instance || !state) return;
+
+      e.preventDefault();
+
+      // Normalizamos el delta para que una muesca se comporte igual en todos los navegadores
+      const lineHeight = 16;
+      const pageHeight = container.clientHeight || 800;
+      const normalizedDelta =
+        e.deltaMode === 1 ? e.deltaY * lineHeight
+        : e.deltaMode === 2 ? e.deltaY * pageHeight
+        : e.deltaY;
+
+      // Factor multiplicativo, con tope por evento para evitar saltos de golpe
+      const rawFactor = Math.exp(-normalizedDelta * WHEEL_SENSITIVITY);
+      const factor = Math.min(1.2, Math.max(1 / 1.2, rawFactor));
+
+      const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, state.scale * factor));
+      if (newScale === state.scale) return;
+
+      // Mantenemos fijo el punto del mapa que está bajo el cursor
+      const rect = container.getBoundingClientRect();
+      const relX = e.clientX - rect.left;
+      const relY = e.clientY - rect.top;
+      const ptX = (relX - state.positionX) / state.scale;
+      const ptY = (relY - state.positionY) / state.scale;
+      const newPosX = relX - ptX * newScale;
+      const newPosY = relY - ptY * newScale;
+
+      instance.setState(newScale, newPosX, newPosY);
+    };
+
+    container.addEventListener("wheel", handleWheelZoom, { passive: false });
+    return () => container.removeEventListener("wheel", handleWheelZoom);
+  }, []);
 
   const getSVGCoords = useCallback((clientX: number, clientY: number) => {
     const svg = svgRef.current;
@@ -105,35 +181,8 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
   }, []);
 
   const handleContextMenu = (e: React.MouseEvent) => {
+    // Evita el menú contextual del navegador sobre el mapa.
     e.preventDefault();
-    const now = Date.now();
-    const DOUBLE_CLICK_DELAY = 300;
-
-    if (now - lastRightClickTime.current < DOUBLE_CLICK_DELAY) {
-      if (transformComponentRef.current) {
-        // Zoom out manteniendo el centro en la posición del ratón
-        // Ignoramos el tipado estricto con `any` ya que la librería exporta diferentes interfaces según su versión
-        const state = transformComponentRef.current.state || (transformComponentRef.current.instance as any)?.transformState;
-        if (!state) return;
-
-        const newScale = Math.max(state.scale - 0.5, 0.15);
-
-        // Coordenadas relativas del ratón en el contenedor
-        const wrapperElement = transformComponentRef.current.instance?.wrapperComponent || (e.currentTarget as Element).parentElement;
-        const rect = wrapperElement?.getBoundingClientRect() || { left: 0, top: 0 };
-        const relX = e.clientX - rect.left;
-        const relY = e.clientY - rect.top;
-
-        const ptX = (relX - state.positionX) / state.scale;
-        const ptY = (relY - state.positionY) / state.scale;
-
-        const newPosX = relX - ptX * newScale;
-        const newPosY = relY - ptY * newScale;
-
-        transformComponentRef.current.setTransform(newPosX, newPosY, newScale, 400);
-      }
-    }
-    lastRightClickTime.current = now;
   };
 
   const addFeedback = (text: string, type: FeedbackMessage["type"], x: number, y: number) => {
@@ -276,26 +325,7 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
     onScoreChange(-100);
   };
 
-  // Ayudante para regresar un nodo al sidebar (opcional: doble clic o botón)
-  const returnNodeToSidebar = (node: GameNode) => {
-    if (completed || node.type === NodeType.FACTORY || node.type === NodeType.CUSTOMER) return;
 
-    // Calcular conexiones relacionadas antes de limpiar
-    const relatedEdges = edges.filter(e => e.from === node.id || e.to === node.id);
-    const removedCount = relatedEdges.length;
-
-    if (removedCount > 0) {
-      setEdges((prev) => {
-        const filtered = prev.filter((e) => e.from !== node.id && e.to !== node.id);
-        return recalculateFlows(placedNodes.filter(n => n.id !== node.id), filtered);
-      });
-      onScoreChange(-100 * removedCount);
-    }
-
-    setPlacedNodes((prev) => prev.filter((n) => n.id !== node.id));
-    setSidebarNodes((prev) => [...prev, node]);
-    if (selectedNodeId === node.id) setSelectedNodeId(null);
-  };
 
   return (
     <div className="relative w-full h-full flex bg-[#f4f4f4]">
@@ -345,21 +375,18 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
           </div>
           <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
             <ZoomIn size={14} className="shrink-0 mt-0.5" />
-            <p><strong>Arrastra el mapa</strong> para navegar por la cuadrícula.</p>
-          </div>
-          <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
-            <MousePointer2 size={14} className="shrink-0 mt-0.5" />
-            <p><strong>Doble clic derecho</strong> para alejar la vista rápidamente.</p>
+            <p><strong>Arrastra el mapa</strong> y usa la <strong>rueda del ratón</strong> para acercar y alejar.</p>
           </div>
         </div>
       </aside>
 
       {/* --- Área del Mapa SVG --- */}
-      <main className="flex-1 relative overflow-hidden bg-[#f4f4f4]">
+      <main ref={containerRef} className="flex-1 relative overflow-hidden bg-[#f4f4f4]">
         <TransformWrapper
           ref={transformComponentRef}
           panning={{ disabled: !!movingNodeId }}
           wheel={{ disabled: true }}
+          doubleClick={{ disabled: true }}
           minScale={0.15}
           maxScale={4}
           initialScale={0.6}
@@ -482,7 +509,6 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
                     transform={`translate(${node.x}, ${node.y})`}
                     onPointerDown={(e) => handleNodePointerDown(e, node.id)}
                     onPointerUp={(e) => handleNodePointerUp(e, node.id)}
-                    onDoubleClick={() => returnNodeToSidebar(node)}
                     className="cursor-grab active:cursor-grabbing"
                   >
                     {/* Anillo de demanda */}
@@ -583,6 +609,29 @@ export function GameCanvas({ nodes, onScoreChange, onError, onLevelComplete }: G
             </svg>
           </TransformComponent>
         </TransformWrapper>
+
+        {/* Control de Volumen de la Música */}
+        <div className="absolute top-6 right-6 z-10 flex items-center gap-3 bg-[#d4d4d4]/95 backdrop-blur-md rounded-2xl border-2 border-[#747474] px-4 py-3 shadow-xl">
+          <button
+            type="button"
+            onClick={handleToggleMute}
+            className="text-slate-600 hover:text-primary transition-colors"
+            aria-label={musicMuted ? "Activar sonido" : "Silenciar música"}
+            title={musicMuted ? "Activar sonido" : "Silenciar música"}
+          >
+            {musicMuted || musicVolume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
+          </button>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={musicMuted ? 0 : musicVolume}
+            onChange={(e) => handleVolumeChange(Number(e.target.value))}
+            className="w-28 h-2 cursor-pointer accent-primary"
+            aria-label="Volumen de la música"
+            title="Volumen de la música"
+          />
+        </div>
 
         {/* Panel de Demanda Inferior Derecho */}
         <div className="absolute bottom-6 right-6 bg-[#d4d4d4]/95 backdrop-blur-md rounded-2xl border-2 border-[#747474] p-5 shadow-xl space-y-3 max-w-[240px] pointer-events-none z-10">
